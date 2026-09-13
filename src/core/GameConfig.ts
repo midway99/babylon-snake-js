@@ -135,6 +135,9 @@ export interface UiConfig {
   readonly colorOptions: ReadonlyArray<ColorOptionConfig>;
   /** Бегущий градиент шейдерного материала, который назначают кнопки цвета. */
   readonly colorEffect: GradientEffectConfig;
+  readonly gradientToggleLabel: string;
+  /** Начальное состояние чекбокса: кнопки назначают градиент (`true`) или однотонный материал. */
+  readonly gradientEnabledByDefault: boolean;
   readonly selectionLabel: string;
   /** Текст в поле, пока ни один меш не выбран. */
   readonly noSelectionText: string;
@@ -239,6 +242,8 @@ export const gameConfig: GameConfig = {
       { label: "Синий", color: new Color3(0.2, 0.45, 0.95) },
     ],
     colorEffect: { speed: 4, stripeFrequency: 6 },
+    gradientToggleLabel: "Градиент",
+    gradientEnabledByDefault: true,
     selectionLabel: "Выбранный меш",
     noSelectionText: "кликните по сегменту",
     victoryTitle: "Финиш!",

@@ -1,4 +1,5 @@
 import { Button } from "@babylonjs/gui/2D/controls/button";
+import { Checkbox } from "@babylonjs/gui/2D/controls/checkbox";
 import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle";
 import { TextBlock } from "@babylonjs/gui/2D/controls/textBlock";
 
@@ -26,6 +27,16 @@ export class GuiStyle {
     block.fontSize = fontSize;
     block.height = `${Math.round(fontSize * 1.6)}px`;
     return block;
+  }
+
+  public static createCheckbox(name: string, isChecked: boolean): Checkbox {
+    const checkbox = new Checkbox(name);
+    checkbox.width = "20px";
+    checkbox.height = "20px";
+    checkbox.isChecked = isChecked;
+    checkbox.color = "#6ee07a";
+    checkbox.background = "rgba(0, 0, 0, 0.35)";
+    return checkbox;
   }
 
   public static createButton(name: string, text: string, background: string, textColor: string): Button {
