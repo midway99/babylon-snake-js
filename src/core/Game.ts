@@ -12,6 +12,7 @@ import { SnakeDragController } from "../input/SnakeDragController";
 import { HavokPhysicsLoader } from "../physics/HavokPhysicsLoader";
 import { Arena } from "../scene/Arena";
 import { Snake } from "../snake/Snake";
+import { GameUi } from "../ui/GameUi";
 import type { GameConfig } from "./GameConfig";
 
 /** Корневой объект игры: создаёт сцену и все игровые сущности и связывает их между собой. */
@@ -25,15 +26,17 @@ export class Game {
   private readonly groundImpactDetector: GroundImpactDetector;
   private readonly laserCourse: LaserCourse;
   private readonly finishZone: FinishZone;
+  private readonly ui: GameUi;
 
   private constructor(
     private readonly engine: Engine,
     private readonly scene: Scene,
     plugin: HavokPlugin,
-    private readonly config: GameConfig,
+    config: GameConfig,
     canvas: HTMLCanvasElement,
   ) {
     this.arena = new Arena(scene, canvas, config.arena);
+    this.ui = new GameUi(scene, config.ui);
     this.snake = new Snake(scene, config.snake);
     this.dragController = new SnakeDragController(this.snake);
 
@@ -70,6 +73,7 @@ export class Game {
   public dispose(): void {
     window.removeEventListener("resize", this.onResize);
     this.engine.stopRenderLoop(this.renderFrame);
+    this.ui.dispose();
     this.finishZone.dispose();
     this.laserCourse.dispose();
     this.groundImpactDetector.dispose();
@@ -93,6 +97,6 @@ export class Game {
   };
 
   private readonly onFinishReached = (): void => {
-    window.alert(this.config.course.victoryMessage);
+    this.ui.showVictory();
   };
 }

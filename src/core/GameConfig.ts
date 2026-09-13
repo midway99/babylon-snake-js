@@ -92,7 +92,6 @@ export interface CourseConfig {
   readonly laserColor: Color3;
   readonly lasers: ReadonlyArray<LaserConfig>;
   readonly finish: FinishZoneConfig;
-  readonly victoryMessage: string;
 }
 
 export interface DustBurstConfig {
@@ -119,6 +118,22 @@ export interface DustConfig {
   readonly destruction: DustBurstConfig;
 }
 
+export interface ColorOptionConfig {
+  readonly label: string;
+  readonly color: Color3;
+}
+
+export interface UiConfig {
+  /** Кнопки перекраски выбранного меша. */
+  readonly colorOptions: ReadonlyArray<ColorOptionConfig>;
+  readonly selectionLabel: string;
+  /** Текст в поле, пока ни один меш не выбран. */
+  readonly noSelectionText: string;
+  readonly victoryTitle: string;
+  readonly victoryMessage: string;
+  readonly victoryCloseText: string;
+}
+
 export interface GameConfig {
   readonly gravity: Vector3;
   readonly arena: ArenaConfig;
@@ -126,6 +141,7 @@ export interface GameConfig {
   readonly destruction: DestructionConfig;
   readonly course: CourseConfig;
   readonly dust: DustConfig;
+  readonly ui: UiConfig;
 }
 
 /** Высота лучей: середина сегмента, лежащего на полу. */
@@ -182,7 +198,6 @@ export const gameConfig: GameConfig = {
       color: new Color3(0.1, 0.9, 0.2),
       alpha: 0.5,
     },
-    victoryMessage: "Поздравляем! Змейка добралась до финиша!",
   },
   dust: {
     poolSize: 32,
@@ -208,5 +223,16 @@ export const gameConfig: GameConfig = {
       minEmitPower: 0.8,
       maxEmitPower: 2,
     },
+  },
+  ui: {
+    colorOptions: [
+      { label: "Синий", color: new Color3(0.2, 0.45, 0.95) },
+      { label: "Жёлтый", color: new Color3(0.95, 0.8, 0.15) },
+    ],
+    selectionLabel: "Выбранный меш",
+    noSelectionText: "кликните по сегменту",
+    victoryTitle: "Финиш!",
+    victoryMessage: "Поздравляем! Змейка добралась до финиша!",
+    victoryCloseText: "Закрыть",
   },
 };

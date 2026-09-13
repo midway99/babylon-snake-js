@@ -14,6 +14,7 @@
 ## Стек и команды
 
 - Vite + TypeScript + `@babylonjs/core`
+- GUI: `@babylonjs/gui` (версия совпадает с `@babylonjs/core`)
 - Физика: Havok (`@babylonjs/havok`) через Physics V2 API — `HavokPlugin`, `PhysicsAggregate` / `PhysicsBody`, `PhysicsConstraint`
 - Менеджер пакетов: `npm`
 
@@ -55,6 +56,7 @@ src/
   core/
     Game.ts                    # движок, сцена, рендер-цикл, владение сущностями
     GameConfig.ts              # типизированный конфиг и его значения
+    MeshMetadata.ts            # базовый тип metadata с id и type guard
   course/
     LaserCourse.ts             # полоса препятствий: каждый шаг двигает лучи и разрушает задетые сегменты
     Laser.ts                   # луч: physics raycast по сегментам + RayHelper, опциональное качание
@@ -78,6 +80,12 @@ src/
     PhysicsBoxEntity.ts        # база: меш + тело BOX, activate/deactivate, телепорт, сброс скорости
   scene/
     Arena.ts                   # камера, свет, пол со статичным телом
+  ui/
+    GameUi.ts                  # полноэкранный AdvancedDynamicTexture и панели
+    MeshSelector.ts            # клик по мешу с metadata.id → выбранный меш
+    MeshColorPanel.ts          # поле с id выбранного меша и кнопки цвета
+    VictoryPanel.ts            # окно поздравления вместо alert
+    GuiStyle.ts                # общее оформление панелей, текста и кнопок
   snake/
     Snake.ts                   # сборка змейки из сегментов и соединений
     SnakeSegment.ts            # меш-параллелепипед + PhysicsAggregate (BOX) + metadata
@@ -86,7 +94,7 @@ src/
     SnakeMaterials.ts          # общие StandardMaterial головы и тела
 ```
 
-Будущие модули (UI, общие утилиты) кладутся в отдельные папки: `ui/`, `utils/`.
+Будущие модули (например, общие утилиты) кладутся в отдельные папки, например `utils/`.
 
 ### Физика и ввод
 
@@ -163,7 +171,7 @@ src/
 
 - Трасса задаётся в `gameConfig.course`: слалом из неподвижных лучей от краёв арены (проходы попеременно справа и слева) и качающийся луч, который доходит до обоих краёв, поэтому безопасной полосы у края нет. Змейка стартует у ближнего края, финиш — у дальнего.
 - Лучи — физический `HavokPlugin.raycast` с `collideWith: CollisionGroup.SnakeSegment` и одним переиспользуемым `PhysicsRaycastResult`; проверка и движение лучей — в `onAfterPhysicsObservable`, без аллокаций. `Ray` хранит ссылку на вектор начала, поэтому `RayHelper` сам следует за качающимся лучом.
-- Финиш — статичное тело с `shape.isTrigger = true` и группой `FinishZone`; маска сегментов змейки включает `FinishZone`. Событие приходит из `onTriggerCollisionObservable` посреди шага, поэтому `alert` показывается после шага и только один раз. Меш финиша `isPickable = false`, чтобы не мешать перетаскиванию.
+- Финиш — статичное тело с `shape.isTrigger = true` и группой `FinishZone`; маска сегментов змейки включает `FinishZone`. Событие приходит из `onTriggerCollisionObservable` посреди шага, поэтому колбэк финиша вызывается после шага и только один раз; он открывает `VictoryPanel` (не `alert`). Меш финиша `isPickable = false`, чтобы не мешать перетаскиванию.
 
 ### Пыль
 
@@ -173,3 +181,12 @@ src/
 - При разрушении `SegmentShatterer` выбрасывает пресет `dust.destruction` в центре сегмента.
 - `setCollisionCallbackEnabled(true)` включается один раз в конструкторе `SnakeSegment`: столкновения слушают несколько систем, и ни одна не должна выключать их другой.
 - Размер пула подобран так, чтобы при быстром ползании (~12 систем) оставался запас на облака разрушения.
+
+### GUI
+
+- Весь экранный интерфейс — `@babylonjs/gui` на одном полноэкранном `AdvancedDynamicTexture` в `GameUi`; браузерные `alert`/`confirm` не использовать.
+- Панели ставят `isPointerBlocker = true` (через `GuiStyle.createPanel`), чтобы клики по кнопкам не выбирали меши и не вращали камеру.
+- Выбор меша — `MeshSelector` по `POINTERDOWN` и `isMeshMetadata(mesh.metadata)`; клик по мешу без id не сбрасывает выбор. Поле показывает `metadata.id`.
+- Кнопка цвета назначает выбранному мешу свой `StandardMaterial`, созданный один раз при сборке панели. Не менять цвет общих материалов змейки — перекрасятся все сегменты. Осколки берут материал сегмента, поэтому сохраняют выбранный цвет.
+- Тексты и цвета GUI — в `gameConfig.ui`; оформление — только через `GuiStyle`.
+
