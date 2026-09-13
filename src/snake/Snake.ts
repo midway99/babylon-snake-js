@@ -1,10 +1,12 @@
 import type { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import type { PhysicsBody } from "@babylonjs/core/Physics/v2/physicsBody";
 import type { PhysicsConstraint } from "@babylonjs/core/Physics/v2/physicsConstraint";
 import type { Scene } from "@babylonjs/core/scene";
 import type { SnakeConfig } from "../core/GameConfig";
 import { SegmentConnector } from "./SegmentConnector";
 import { SnakeMaterials } from "./SnakeMaterials";
 import { SnakeSegment } from "./SnakeSegment";
+import type { SnakeSegmentMetadata } from "./SnakeSegmentMetadata";
 
 /** Змейка из последовательно соединённых физических сегментов. */
 export class Snake {
@@ -23,6 +25,12 @@ export class Snake {
 
   public get segments(): ReadonlyArray<SnakeSegment> {
     return this.ownedSegments;
+  }
+
+  /** Индекс сегмента по его физическому телу; тело должно принадлежать змейке. */
+  public indexOfBody(body: PhysicsBody): number {
+    const metadata: SnakeSegmentMetadata = body.transformNode.metadata;
+    return metadata.index;
   }
 
   /**

@@ -19,7 +19,8 @@ export class Arena {
   private readonly groundAggregate: PhysicsAggregate;
 
   public constructor(scene: Scene, canvas: HTMLCanvasElement, config: ArenaConfig) {
-    this.camera = new ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 3, 14, Vector3.Zero(), scene);
+    const { alpha, beta, radius, target } = config.camera;
+    this.camera = new ArcRotateCamera("camera", alpha, beta, radius, target.clone(), scene);
     this.camera.attachControl(canvas, true);
 
     this.light = new HemisphericLight("light", new Vector3(0.3, 1, -0.5), scene);

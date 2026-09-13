@@ -5,6 +5,7 @@ export enum CollisionGroup {
   Ground = 1 << 0,
   SnakeSegment = 1 << 1,
   Debris = 1 << 2,
+  FinishZone = 1 << 3,
 }
 
 /**
@@ -16,13 +17,18 @@ export class CollisionFilter {
     CollisionGroup.Ground,
     CollisionGroup.SnakeSegment | CollisionGroup.Debris,
   );
-  /** Сегменты сталкиваются только с полом, но не друг с другом. */
-  public static readonly SnakeSegment = new CollisionFilter(CollisionGroup.SnakeSegment, CollisionGroup.Ground);
+  /** Сегменты сталкиваются с полом и финишной зоной (триггером), но не друг с другом. */
+  public static readonly SnakeSegment = new CollisionFilter(
+    CollisionGroup.SnakeSegment,
+    CollisionGroup.Ground | CollisionGroup.FinishZone,
+  );
   /** Осколки сталкиваются с полом и друг с другом, но не мешают целым сегментам. */
   public static readonly Debris = new CollisionFilter(
     CollisionGroup.Debris,
     CollisionGroup.Ground | CollisionGroup.Debris,
   );
+  /** Финишная зона реагирует только на сегменты змейки. */
+  public static readonly FinishZone = new CollisionFilter(CollisionGroup.FinishZone, CollisionGroup.SnakeSegment);
   /** Для выключенных тел: ни с чем не сталкиваются. */
   public static readonly None = new CollisionFilter(0, 0);
 

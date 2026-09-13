@@ -33,9 +33,17 @@ export interface SnakeConfig {
   readonly bodyColor: Color3;
 }
 
+export interface CameraConfig {
+  readonly alpha: number;
+  readonly beta: number;
+  readonly radius: number;
+  readonly target: Vector3;
+}
+
 export interface ArenaConfig {
   readonly groundSize: number;
   readonly groundColor: Color3;
+  readonly camera: CameraConfig;
 }
 
 export interface ShardGridConfig {
@@ -59,18 +67,51 @@ export interface DestructionConfig {
   readonly upwardSpeed: number;
 }
 
+export interface LaserSweepConfig {
+  /** Максимальное смещение луча от базового положения. */
+  readonly offset: Vector3;
+  /** Период полного качания туда и обратно, с. */
+  readonly periodSeconds: number;
+}
+
+export interface LaserConfig {
+  readonly from: Vector3;
+  readonly to: Vector3;
+  /** Если задано, луч качается вдоль `offset` по синусоиде. */
+  readonly sweep?: LaserSweepConfig;
+}
+
+export interface FinishZoneConfig {
+  readonly position: Vector3;
+  readonly size: number;
+  readonly color: Color3;
+  readonly alpha: number;
+}
+
+export interface CourseConfig {
+  readonly laserColor: Color3;
+  readonly lasers: ReadonlyArray<LaserConfig>;
+  readonly finish: FinishZoneConfig;
+  readonly victoryMessage: string;
+}
+
 export interface GameConfig {
   readonly gravity: Vector3;
   readonly arena: ArenaConfig;
   readonly snake: SnakeConfig;
   readonly destruction: DestructionConfig;
+  readonly course: CourseConfig;
 }
+
+/** Высота лучей: середина сегмента, лежащего на полу. */
+const laserHeight = 0.25;
 
 export const gameConfig: GameConfig = {
   gravity: new Vector3(0, -9.81, 0),
   arena: {
     groundSize: 20,
     groundColor: new Color3(0.25, 0.27, 0.32),
+    camera: { alpha: -Math.PI / 2, beta: 0.85, radius: 23, target: new Vector3(0, 0, 0.5) },
   },
   snake: {
     segmentCount: 4,
@@ -84,7 +125,7 @@ export const gameConfig: GameConfig = {
       maxPitchAngle: Math.PI / 2,
       straighteningForce: 25,
     },
-    spawnPosition: new Vector3(1.5, 0.3, 0),
+    spawnPosition: new Vector3(1.5, 0.3, -7.5),
     headColor: new Color3(0.9, 0.35, 0.2),
     bodyColor: new Color3(0.25, 0.75, 0.35),
   },
@@ -95,5 +136,27 @@ export const gameConfig: GameConfig = {
     impactImpulseThreshold: 3,
     scatterSpeed: 2.5,
     upwardSpeed: 1.5,
+  },
+  // Слалом: неподвижные лучи от краёв арены оставляют проход попеременно справа и слева,
+  // последний луч качается поперёк трассы — его нужно проходить, выбрав момент.
+  course: {
+    laserColor: new Color3(1, 0.15, 0.15),
+    lasers: [
+      { from: new Vector3(-10, laserHeight, -4.5), to: new Vector3(4, laserHeight, -4.5) },
+      { from: new Vector3(-4, laserHeight, -1), to: new Vector3(10, laserHeight, -1) },
+      { from: new Vector3(-10, laserHeight, 2.5), to: new Vector3(4, laserHeight, 2.5) },
+      {
+        from: new Vector3(-4, laserHeight, 5.5),
+        to: new Vector3(4, laserHeight, 5.5),
+        sweep: { offset: new Vector3(6, 0, 0), periodSeconds: 5 },
+      },
+    ],
+    finish: {
+      position: new Vector3(0, 1, 8.3),
+      size: 2,
+      color: new Color3(0.1, 0.9, 0.2),
+      alpha: 0.5,
+    },
+    victoryMessage: "Поздравляем! Змейка добралась до финиша!",
   },
 };
