@@ -123,9 +123,18 @@ export interface ColorOptionConfig {
   readonly color: Color3;
 }
 
+export interface GradientEffectConfig {
+  /** Скорость бега полос, рад/с фазы синусоиды. */
+  readonly speed: number;
+  /** Плотность полос на единицу длины меша. */
+  readonly stripeFrequency: number;
+}
+
 export interface UiConfig {
   /** Кнопки перекраски выбранного меша. */
   readonly colorOptions: ReadonlyArray<ColorOptionConfig>;
+  /** Бегущий градиент шейдерного материала, который назначают кнопки цвета. */
+  readonly colorEffect: GradientEffectConfig;
   readonly selectionLabel: string;
   /** Текст в поле, пока ни один меш не выбран. */
   readonly noSelectionText: string;
@@ -229,6 +238,7 @@ export const gameConfig: GameConfig = {
       { label: "Красный", color: new Color3(0.9, 0.2, 0.2) },
       { label: "Синий", color: new Color3(0.2, 0.45, 0.95) },
     ],
+    colorEffect: { speed: 4, stripeFrequency: 6 },
     selectionLabel: "Выбранный меш",
     noSelectionText: "кликните по сегменту",
     victoryTitle: "Финиш!",

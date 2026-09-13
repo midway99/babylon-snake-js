@@ -1,23 +1,25 @@
-import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
+import type { Material } from "@babylonjs/core/Materials/material";
 import type { Scene } from "@babylonjs/core/scene";
 import type { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture";
 import { Control } from "@babylonjs/gui/2D/controls/control";
 import { Rectangle } from "@babylonjs/gui/2D/controls/rectangle";
 import { StackPanel } from "@babylonjs/gui/2D/controls/stackPanel";
 import type { TextBlock } from "@babylonjs/gui/2D/controls/textBlock";
-import type { ColorOptionConfig, UiConfig } from "../core/GameConfig";
+import type { ColorOptionConfig, GradientEffectConfig, UiConfig } from "../core/GameConfig";
 import type { MeshMetadata } from "../core/MeshMetadata";
+import { RunningGradientMaterial } from "../materials/RunningGradientMaterial";
 import { GuiStyle } from "./GuiStyle";
 import type { MeshSelector } from "./MeshSelector";
 
 /**
  * Панель выбора цвета: поле с идентификатором выбранного меша и кнопки, назначающие ему материал.
- * Материалы кнопок создаются один раз, поэтому перекраска одного сегмента не задевает остальные.
+ * Кнопки назначают шейдерный материал с бегущим градиентом. Материалы создаются один раз,
+ * поэтому перекраска одного сегмента не задевает остальные.
  */
 export class MeshColorPanel {
   private readonly panel: Rectangle;
   private readonly idText: TextBlock;
-  private readonly materials: StandardMaterial[] = [];
+  private readonly materials: RunningGradientMaterial[] = [];
 
   public constructor(
     scene: Scene,
@@ -41,7 +43,7 @@ export class MeshColorPanel {
     layout.addControl(GuiStyle.createText("selectionLabel", config.selectionLabel, 14));
     this.idText = GuiStyle.createText("selectedMeshId", config.noSelectionText, 16);
     layout.addControl(MeshColorPanel.createField(this.idText));
-    layout.addControl(this.createColorButtons(scene, config.colorOptions));
+    layout.addControl(this.createColorButtons(scene, config.colorOptions, config.colorEffect));
 
     selector.onSelectionChangedObservable.add(this.onSelectionChanged);
   }
@@ -68,21 +70,29 @@ export class MeshColorPanel {
     return field;
   }
 
-  private createColorButtons(scene: Scene, options: ReadonlyArray<ColorOptionConfig>): StackPanel {
+  private createColorButtons(
+    scene: Scene,
+    options: ReadonlyArray<ColorOptionConfig>,
+    effect: GradientEffectConfig,
+  ): StackPanel {
     const row = new StackPanel("colorButtons");
     row.isVertical = false;
     row.height = "44px";
     row.spacing = 10;
     row.paddingTop = "8px";
     for (let index = 0; index < options.length; index++) {
-      row.addControl(this.createColorButton(scene, options[index], index));
+      row.addControl(this.createColorButton(scene, options[index], effect, index));
     }
     return row;
   }
 
-  private createColorButton(scene: Scene, option: ColorOptionConfig, index: number): Rectangle {
-    const material = new StandardMaterial(`selectableColor-${index}`, scene);
-    material.diffuseColor = option.color;
+  private createColorButton(
+    scene: Scene,
+    option: ColorOptionConfig,
+    effect: GradientEffectConfig,
+    index: number,
+  ): Rectangle {
+    const material = new RunningGradientMaterial(`selectableColor-${index}`, scene, option.color, effect);
     this.materials.push(material);
 
     const button = GuiStyle.createButton(`colorButton-${index}`, option.label, option.color.toHexString(), "#111");
@@ -91,7 +101,7 @@ export class MeshColorPanel {
     return button;
   }
 
-  private applyMaterial(material: StandardMaterial): void {
+  private applyMaterial(material: Material): void {
     const mesh = this.selector.selectedMesh;
     if (mesh !== null) {
       mesh.material = material;

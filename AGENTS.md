@@ -74,6 +74,9 @@ src/
   input/
     SnakeDragController.ts     # вешает перетаскивание на каждый сегмент, Shift — режим подъёма
     SegmentDragHandler.ts      # PointerDragBehavior + onDragStart/onDragEnd
+  materials/
+    RunningGradientMaterial.ts # ShaderMaterial с бегущим градиентом и uniform time
+    shaders/                   # GLSL-исходники, импортируются через ?raw
   physics/
     HavokPhysicsLoader.ts      # загрузка Havok WASM и scene.enablePhysics
     CollisionFilter.ts         # группы и маски коллизий (filterMembershipMask / filterCollideMask)
@@ -187,6 +190,12 @@ src/
 - Весь экранный интерфейс — `@babylonjs/gui` на одном полноэкранном `AdvancedDynamicTexture` в `GameUi`; браузерные `alert`/`confirm` не использовать.
 - Панели ставят `isPointerBlocker = true` (через `GuiStyle.createPanel`), чтобы клики по кнопкам не выбирали меши и не вращали камеру.
 - Выбор меша — `MeshSelector` по `POINTERDOWN` и `isMeshMetadata(mesh.metadata)`; клик по мешу без id не сбрасывает выбор. Поле показывает `metadata.id`.
-- Кнопка цвета назначает выбранному мешу свой `StandardMaterial`, созданный один раз при сборке панели. Не менять цвет общих материалов змейки — перекрасятся все сегменты. Осколки берут материал сегмента, поэтому сохраняют выбранный цвет.
+- Кнопка цвета назначает выбранному мешу свой `RunningGradientMaterial`, созданный один раз при сборке панели. Не менять цвет общих материалов змейки — перекрасятся все сегменты. Осколки берут материал сегмента, поэтому сохраняют выбранный цвет.
 - Тексты и цвета GUI — в `gameConfig.ui`; оформление — только через `GuiStyle`.
+
+### Шейдерные материалы
+
+- Собственные материалы наследуют `ShaderMaterial`; GLSL лежит в `src/materials/shaders/*.glsl` и передаётся как `{ vertexSource, fragmentSource }` через импорт `?raw` — без глобального `Effect.ShadersStore`.
+- Все используемые uniform перечисляются в `uniforms` при создании материала. Анимируемый uniform `time` обновляется в `scene.onBeforeRenderObservable` через `setFloat` — без аллокаций; подписка снимается в переопределённом `dispose`.
+- Параметры эффекта (`speed`, `stripeFrequency`) — в `gameConfig.ui.colorEffect`.
 
