@@ -7,10 +7,19 @@
     <style>
       html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
       #renderCanvas { width: 100%; height: 100%; display: block; touch-action: none; }
+      #controlsHint {
+        position: fixed; left: 12px; bottom: 12px; padding: 8px 12px; border-radius: 6px;
+        font: 13px/1.5 system-ui, sans-serif; color: #e8e8f0; background: rgba(20, 20, 30, 0.6);
+        pointer-events: none; user-select: none;
+      }
     </style>
   </head>
   <body>
     <canvas id="renderCanvas"></canvas>
+    <div id="controlsHint">
+      Перетаскивание сегмента — двигать змейку по полу<br />
+      Shift + перетаскивание — поднять; отпустите высоко, чтобы змейка разбилась
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

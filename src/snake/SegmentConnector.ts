@@ -11,8 +11,8 @@ import type { SnakeSegment } from "./SnakeSegment";
 
 /**
  * Соединяет соседние сегменты 6DoF-соединением, которое разрешает только изгиб
- * в горизонтальной плоскости (вокруг вертикальной оси) в пределах `maxBendAngle`.
- * Сдвиг, кручение вдоль змейки и изгиб вверх-вниз заблокированы, поэтому змейка
+ * в горизонтальной плоскости в пределах `maxBendAngle` и изгиб вверх-вниз в пределах `maxPitchAngle`.
+ * Сдвиг и кручение вдоль змейки заблокированы, поэтому змейка
  * не перекручивается и не складывается. Точка соединения — середина зазора; сегменты идут от головы в сторону -X.
  */
 export class SegmentConnector {
@@ -62,7 +62,7 @@ export class SegmentConnector {
       { axis: PhysicsConstraintAxis.LINEAR_Y, minLimit: 0, maxLimit: 0 },
       { axis: PhysicsConstraintAxis.LINEAR_Z, minLimit: 0, maxLimit: 0 },
       { axis: PhysicsConstraintAxis.ANGULAR_X, minLimit: 0, maxLimit: 0 },
-      { axis: PhysicsConstraintAxis.ANGULAR_Z, minLimit: 0, maxLimit: 0 },
+      { axis: PhysicsConstraintAxis.ANGULAR_Z, minLimit: -joint.maxPitchAngle, maxLimit: joint.maxPitchAngle },
       { axis: SegmentConnector.bendAxis, minLimit: -joint.maxBendAngle, maxLimit: joint.maxBendAngle },
     ];
   }

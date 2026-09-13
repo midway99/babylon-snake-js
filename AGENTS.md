@@ -54,31 +54,48 @@ src/
   core/
     Game.ts                    # движок, сцена, рендер-цикл, владение сущностями
     GameConfig.ts              # типизированный конфиг и его значения
+  destruction/
+    SnakeDestruction.ts        # удар о землю сильнее порога → подмена сегмента осколками
+    ShatteredSegmentPool.ts    # заранее собранный пул разбитых копий сегмента
+    ShatteredSegment.ts        # набор осколков одной копии
+    Shard.ts                   # осколок: появление на месте сегмента и разлёт импульсом
+    ShardGrid.ts               # размеры, масса и смещения осколков
   input/
-    SnakeDragController.ts     # вешает перетаскивание на каждый сегмент
+    SnakeDragController.ts     # вешает перетаскивание на каждый сегмент, Shift — режим подъёма
     SegmentDragHandler.ts      # PointerDragBehavior + onDragStart/onDragEnd
   physics/
     HavokPhysicsLoader.ts      # загрузка Havok WASM и scene.enablePhysics
     CollisionFilter.ts         # группы и маски коллизий (filterMembershipMask / filterCollideMask)
+    PhysicsBoxEntity.ts        # база: меш + тело BOX, activate/deactivate, телепорт, сброс скорости
   scene/
     Arena.ts                   # камера, свет, пол со статичным телом
   snake/
     Snake.ts                   # сборка змейки из сегментов и соединений
     SnakeSegment.ts            # меш-параллелепипед + PhysicsAggregate (BOX) + metadata
     SnakeSegmentMetadata.ts    # тип объекта в mesh.metadata
-    SegmentConnector.ts        # Physics6DoFConstraint: только горизонтальный изгиб + выпрямляющий мотор
+    SegmentConnector.ts        # Physics6DoFConstraint: изгиб с лимитами, без кручения, выпрямляющий мотор
     SnakeMaterials.ts          # общие StandardMaterial головы и тела
 ```
 
-Будущие модули (еда, UI, пулы объектов) кладутся в отдельные папки: `food/`, `ui/`, `utils/`.
+Будущие модули (еда, UI, общие утилиты) кладутся в отдельные папки: `food/`, `ui/`, `utils/`.
 
 ### Физика и ввод
 
-- Коллизии задаются только через [CollisionFilter.ts](src/physics/CollisionFilter.ts): сегменты змейки сталкиваются с полом, но не друг с другом. Новой сущности нужна своя группа в `CollisionGroup`.
+- Коллизии задаются только через [CollisionFilter.ts](src/physics/CollisionFilter.ts): сегменты змейки сталкиваются только с полом; осколки — с полом и друг с другом. Новой сущности нужна своя группа в `CollisionGroup`.
 - Код ввода не трогает физическое тело напрямую, а вызывает методы сущности (`SnakeSegment.beginManualControl` / `endManualControl`).
-- Змейка должна двигаться ровно: сегменты остаются горизонтальными, не перекручиваются и не складываются. За это отвечают 6DoF-соединения (сдвиг, крен и тангаж заблокированы, изгиб по вертикальной оси ограничен `maxBendAngle`, мотор выпрямляет), демпфирование скоростей и перетаскивание в горизонтальной плоскости. Не заменять их на `BallAndSocketConstraint`.
-- Сегменты используют pre-step `ACTION`: при `disablePreStep = false` тело остаётся `DYNAMIC` и получает скорость к позиции трансформа, а не телепортируется. На время drag: `disablePreStep = false`; после: `disablePreStep = true`, линейная и угловая скорость обнуляются.
-- Параметры плавности (`linearDamping`, `angularDamping`, `joint.maxBendAngle`, `joint.straighteningForce`) настраиваются только в конфиге.
+- Змейка должна двигаться ровно: сегменты не перекручиваются и не складываются. За это отвечают 6DoF-соединения (сдвиг и кручение заблокированы, изгиб ограничен `maxBendAngle` / `maxPitchAngle`, мотор выпрямляет), демпфирование и перетаскивание в горизонтальной плоскости. Не заменять их на `BallAndSocketConstraint`.
+- **Ловушка Babylon 9:** `disablePreStep` — не отдельный флаг, а сокращение для типа pre-step (`true` = `DISABLED`, `false` = `TELEPORT`). `setPrestepType(ACTION)` тоже включает pre-step. Тело с включённым pre-step физика каждый шаг тянет к трансформу меша — оно зависает в воздухе. Поэтому по умолчанию pre-step у всех тел выключен.
+- Перетаскивание: на старте `disablePreStep = false` + `setPrestepType(ACTION)` (тело `DYNAMIC` получает скорость к трансформу, соседи тянутся плавно); на конце `disablePreStep = true` и сброс скоростей.
+- Телепорт тела (`PhysicsBoxEntity.teleportToMesh`) — временно `disablePreStep = false` и `HavokPlugin.setPhysicsBodyTransformation`.
+- Выключенные тела не удаляются из мира Havok (иначе теряются подписки на столкновения): `PhysicsBoxEntity.deactivate` делает тело `STATIC`, обнуляет маски коллизий и скрывает меш.
+- Параметры плавности и разрушения (`linearDamping`, `angularDamping`, `joint.*`, `destruction.*`) настраиваются только в конфиге. Порог `impactImpulseThreshold` подобран так, что перетаскивание по полу даёт импульсы ~0.4, а падение с высоты 3–5 м — 4–9.
+
+### Разрушение
+
+- Осколки и их тела создаются заранее в `ShatteredSegmentPool`; во время игры ничего не создаётся.
+- Столкновения ловятся через `body.getCollisionObservable()` (нужен `setCollisionCallbackEnabled(true)`). Колбэк вызывается посреди обработки шага Havok, поэтому в нём сегмент только помечается, а подмена выполняется в `scene.onAfterPhysicsObservable`.
+- Индекс сегмента берётся из `mesh.metadata` (`SnakeSegmentMetadata`).
+- Скорость разлёта осколков задаётся в м/с и умножается на массу осколка, чтобы импульс не зависел от размера сетки осколков.
 
 ## Производительность: без аллокаций в горячем пути
 

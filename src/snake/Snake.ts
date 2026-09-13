@@ -25,6 +25,14 @@ export class Snake {
     return this.ownedSegments;
   }
 
+  /** Скрывает сегмент и разрывает его соединения с соседями; змейка распадается на части. */
+  public detachSegment(index: number): void {
+    // Соединение с индексом i связывает сегменты i и i + 1.
+    this.disableConstraint(index - 1);
+    this.disableConstraint(index);
+    this.ownedSegments[index].deactivate();
+  }
+
   public dispose(): void {
     for (const constraint of this.constraints) {
       constraint.dispose();
@@ -49,6 +57,12 @@ export class Snake {
       }
       this.ownedSegments.push(segment);
       position.x -= step;
+    }
+  }
+
+  private disableConstraint(index: number): void {
+    if (index >= 0 && index < this.constraints.length) {
+      this.constraints[index].isEnabled = false;
     }
   }
 

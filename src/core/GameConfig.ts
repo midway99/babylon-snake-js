@@ -11,6 +11,8 @@ export interface SegmentSize {
 export interface SegmentJointConfig {
   /** Максимальный угол изгиба между соседними сегментами в горизонтальной плоскости, рад. */
   readonly maxBendAngle: number;
+  /** Максимальный угол изгиба вверх-вниз, рад: поднятая змейка провисает, а не стоит жёстким столбом. */
+  readonly maxPitchAngle: number;
   /** Сила мотора, который выпрямляет соединение; 0 — без выпрямления. */
   readonly straighteningForce: number;
 }
@@ -36,10 +38,32 @@ export interface ArenaConfig {
   readonly groundColor: Color3;
 }
 
+export interface ShardGridConfig {
+  /** Число осколков вдоль каждой оси сегмента. */
+  readonly alongLength: number;
+  readonly alongHeight: number;
+  readonly alongWidth: number;
+}
+
+export interface DestructionConfig {
+  /** Сколько разбитых копий сегмента собрать заранее. */
+  readonly poolSize: number;
+  readonly shards: ShardGridConfig;
+  /** Зазор между осколками, чтобы в момент появления они не пересекались. */
+  readonly shardGap: number;
+  /** Минимальный импульс удара о землю, при котором сегмент разбивается. */
+  readonly impactImpulseThreshold: number;
+  /** Средняя скорость разлёта осколка от центра сегмента, м/с. Импульс считается с учётом массы осколка. */
+  readonly scatterSpeed: number;
+  /** Дополнительная скорость осколка вверх, м/с. */
+  readonly upwardSpeed: number;
+}
+
 export interface GameConfig {
   readonly gravity: Vector3;
   readonly arena: ArenaConfig;
   readonly snake: SnakeConfig;
+  readonly destruction: DestructionConfig;
 }
 
 export const gameConfig: GameConfig = {
@@ -53,14 +77,23 @@ export const gameConfig: GameConfig = {
     segmentSize: { length: 1, height: 0.5, width: 0.5 },
     segmentGap: 0.15,
     segmentMass: 1,
-    linearDamping: 2,
-    angularDamping: 4,
+    linearDamping: 1,
+    angularDamping: 2,
     joint: {
       maxBendAngle: Math.PI / 4,
+      maxPitchAngle: Math.PI / 2,
       straighteningForce: 25,
     },
     spawnPosition: new Vector3(1.5, 0.3, 0),
     headColor: new Color3(0.9, 0.35, 0.2),
     bodyColor: new Color3(0.25, 0.75, 0.35),
+  },
+  destruction: {
+    poolSize: 4,
+    shards: { alongLength: 3, alongHeight: 2, alongWidth: 2 },
+    shardGap: 0.03,
+    impactImpulseThreshold: 3,
+    scatterSpeed: 2.5,
+    upwardSpeed: 1.5,
   },
 };
