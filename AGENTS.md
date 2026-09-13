@@ -73,6 +73,7 @@ src/
     GroundDustEmitter.ts       # пыль в точке контакта сегмента с землёй: приземление и ползание
   input/
     SnakeDragController.ts     # вешает перетаскивание на каждый сегмент, Shift — режим подъёма
+    KeyboardShortcut.ts        # действие по физическому коду клавиши (R — рестарт)
     SegmentDragHandler.ts      # PointerDragBehavior + onDragStart/onDragEnd
   materials/
     RunningGradientMaterial.ts # ShaderMaterial с бегущим градиентом и uniform time
@@ -88,7 +89,8 @@ src/
     MeshSelector.ts            # клик по мешу с metadata.id → выбранный меш
     MeshColorPanel.ts          # поле с id выбранного меша, кнопки цвета и чекбокс градиента
     SelectableColor.ts         # цвет в двух вариантах материала: однотонный и градиент
-    VictoryPanel.ts            # окно поздравления вместо alert
+    VictoryPanel.ts            # окно поздравления вместо alert, кнопка «Начать заново»
+    RestartButton.ts           # кнопка рестарта в правом верхнем углу
     GuiStyle.ts                # общее оформление панелей, текста и кнопок
   snake/
     Snake.ts                   # сборка змейки из сегментов и соединений
@@ -199,4 +201,11 @@ src/
 - Собственные материалы наследуют `ShaderMaterial`; GLSL лежит в `src/materials/shaders/*.glsl` и передаётся как `{ vertexSource, fragmentSource }` через импорт `?raw` — без глобального `Effect.ShadersStore`.
 - Все используемые uniform перечисляются в `uniforms` при создании материала. Анимируемый uniform `time` обновляется в `scene.onBeforeRenderObservable` через `setFloat` — без аллокаций; подписка снимается в переопределённом `dispose`.
 - Параметры эффекта (`speed`, `stripeFrequency`) — в `gameConfig.ui.colorEffect`.
+
+### Рестарт
+
+- `Game.restart` — единственное место, которое знает порядок сброса: отменить перетаскивание → вернуть осколки в пул → `Snake.reset` → сбросить пыль и финиш → скрыть окно победы. Новому состоянию, которое меняется за игру, нужен свой `reset()`, вызываемый отсюда.
+- Рестарт ничего не создаёт: сегменты и осколки переиспользуются, стартовые позиции запоминаются при сборке змейки.
+- `Snake.reset` ставит сегменты через `PhysicsBoxEntity.placeAt` (включить тело, телепорт, нулевая скорость), возвращает исходные материалы и только после расстановки включает соединения.
+- Запуск: клавиша `ui.restartKeyCode` (по `KeyboardEvent.code`, не зависит от раскладки), кнопка `RestartButton`, кнопка «Начать заново» в `VictoryPanel`.
 

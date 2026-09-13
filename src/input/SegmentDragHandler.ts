@@ -33,6 +33,11 @@ export class SegmentDragHandler {
     this.behavior.options = enabled ? SegmentDragHandler.liftOptions : SegmentDragHandler.moveOptions;
   }
 
+  /** Прерывает перетаскивание, если оно идёт; слушатель получит обычное событие конца. */
+  public cancelDrag(): void {
+    this.behavior.releaseDrag();
+  }
+
   public dispose(): void {
     this.behavior.onDragStartObservable.removeCallback(this.onDragStart);
     this.behavior.onDragEndObservable.removeCallback(this.onDragEnd);

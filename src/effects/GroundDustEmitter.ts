@@ -28,6 +28,13 @@ export class GroundDustEmitter {
     }
   }
 
+  /** Отсчитывает путь до следующего облачка заново от текущих позиций сегментов. */
+  public reset(): void {
+    for (let index = 0; index < this.lastPuffPositions.length; index++) {
+      this.lastPuffPositions[index].copyFrom(this.snake.segments[index].mesh.position);
+    }
+  }
+
   public dispose(): void {
     for (const segment of this.snake.segments) {
       segment.body.getCollisionObservable().removeCallback(this.onSegmentCollision);

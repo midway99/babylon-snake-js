@@ -1,4 +1,5 @@
 import { Quaternion, Vector3 } from "@babylonjs/core/Maths/math.vector";
+import type { DeepImmutable } from "@babylonjs/core/types";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { PhysicsMotionType, PhysicsShapeType } from "@babylonjs/core/Physics/v2/IPhysicsEnginePlugin";
 import { PhysicsAggregate } from "@babylonjs/core/Physics/v2/physicsAggregate";
@@ -66,8 +67,17 @@ export class PhysicsBoxEntity {
     this.mesh.setEnabled(false);
   }
 
+  /** Включает тело и мгновенно ставит его в заданную позицию и ориентацию без скорости. */
+  public placeAt(position: DeepImmutable<Vector3>, rotation: DeepImmutable<Quaternion>, plugin: HavokPlugin): void {
+    this.activate();
+    this.mesh.position.copyFrom(position);
+    this.rotation.copyFrom(rotation);
+    this.teleportToMesh(plugin);
+    this.resetVelocity();
+  }
+
   /** Мгновенно переносит тело в текущую позицию и ориентацию меша, сохраняя его скорость. */
-  protected teleportToMesh(plugin: HavokPlugin): void {
+  private teleportToMesh(plugin: HavokPlugin): void {
     this.mesh.computeWorldMatrix(true);
     // Плагин переносит тело только при pre-step в режиме TELEPORT, который включает `disablePreStep = false`.
     this.body.disablePreStep = false;

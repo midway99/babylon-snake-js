@@ -33,6 +33,12 @@ export class SnakeDragController implements SegmentDragListener {
     this.snake.releaseToPhysics();
   }
 
+  public cancelDrag(): void {
+    for (const handler of this.handlers) {
+      handler.cancelDrag();
+    }
+  }
+
   public dispose(): void {
     window.removeEventListener("keydown", this.onKeyChange);
     window.removeEventListener("keyup", this.onKeyChange);

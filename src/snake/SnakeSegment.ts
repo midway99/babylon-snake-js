@@ -1,8 +1,10 @@
 import type { Material } from "@babylonjs/core/Materials/material";
+import { Quaternion } from "@babylonjs/core/Maths/math.vector";
 import type { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { CreateBox } from "@babylonjs/core/Meshes/Builders/boxBuilder";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { PhysicsPrestepType } from "@babylonjs/core/Physics/v2/IPhysicsEnginePlugin";
+import type { HavokPlugin } from "@babylonjs/core/Physics/v2/Plugins/havokPlugin";
 import type { Scene } from "@babylonjs/core/scene";
 import type { SnakeConfig } from "../core/GameConfig";
 import { CollisionFilter } from "../physics/CollisionFilter";
@@ -18,6 +20,9 @@ export interface SnakeSegmentOptions {
 
 /** Один сегмент змейки: меш-параллелепипед с физическим телом BOX. */
 export class SnakeSegment extends PhysicsBoxEntity {
+  /** Сегменты стартуют без поворота. */
+  private static readonly spawnRotation: Quaternion = Quaternion.Identity();
+
   public readonly metadata: SnakeSegmentMetadata;
 
   public constructor(scene: Scene, options: SnakeSegmentOptions) {
@@ -32,6 +37,12 @@ export class SnakeSegment extends PhysicsBoxEntity {
     this.body.setAngularDamping(config.angularDamping);
     // Столкновения сегмента слушают несколько систем (разрушение, пыль), поэтому события включаются здесь один раз.
     this.body.setCollisionCallbackEnabled(true);
+  }
+
+  /** Возвращает сегмент на стартовую позицию: целым, неподвижным, без поворота и с исходным материалом. */
+  public respawn(position: Vector3, material: Material, plugin: HavokPlugin): void {
+    this.mesh.material = material;
+    this.placeAt(position, SnakeSegment.spawnRotation, plugin);
   }
 
   /** Физика начинает каждый шаг вести тело к позиции трансформа меша, который двигает пользователь. */

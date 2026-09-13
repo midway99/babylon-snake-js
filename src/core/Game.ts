@@ -8,6 +8,7 @@ import { SegmentShatterer } from "../destruction/SegmentShatterer";
 import { ShatteredSegmentPool } from "../destruction/ShatteredSegmentPool";
 import { DustParticlePool } from "../effects/DustParticlePool";
 import { GroundDustEmitter } from "../effects/GroundDustEmitter";
+import { KeyboardShortcut } from "../input/KeyboardShortcut";
 import { SnakeDragController } from "../input/SnakeDragController";
 import { HavokPhysicsLoader } from "../physics/HavokPhysicsLoader";
 import { Arena } from "../scene/Arena";
@@ -27,6 +28,7 @@ export class Game {
   private readonly laserCourse: LaserCourse;
   private readonly finishZone: FinishZone;
   private readonly ui: GameUi;
+  private readonly restartShortcut: KeyboardShortcut;
 
   private constructor(
     private readonly engine: Engine,
@@ -36,8 +38,9 @@ export class Game {
     canvas: HTMLCanvasElement,
   ) {
     this.arena = new Arena(scene, canvas, config.arena);
-    this.ui = new GameUi(scene, config.ui);
-    this.snake = new Snake(scene, config.snake);
+    this.ui = new GameUi(scene, config.ui, this.restart);
+    this.restartShortcut = new KeyboardShortcut(config.ui.restartKeyCode, this.restart);
+    this.snake = new Snake(scene, plugin, config.snake);
     this.dragController = new SnakeDragController(this.snake);
 
     this.dustPool = new DustParticlePool(scene, config.dust);
@@ -73,6 +76,7 @@ export class Game {
   public dispose(): void {
     window.removeEventListener("resize", this.onResize);
     this.engine.stopRenderLoop(this.renderFrame);
+    this.restartShortcut.dispose();
     this.ui.dispose();
     this.finishZone.dispose();
     this.laserCourse.dispose();
@@ -94,6 +98,16 @@ export class Game {
 
   private readonly onResize = (): void => {
     this.engine.resize();
+  };
+
+  /** Возвращает змейку и трассу в начальное состояние. */
+  private readonly restart = (): void => {
+    this.dragController.cancelDrag();
+    this.shatteredPool.releaseAll();
+    this.snake.reset();
+    this.groundDustEmitter.reset();
+    this.finishZone.reset();
+    this.ui.hideVictory();
   };
 
   private readonly onFinishReached = (): void => {

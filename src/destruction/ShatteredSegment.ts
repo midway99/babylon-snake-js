@@ -28,6 +28,13 @@ export class ShatteredSegment {
     }
   }
 
+  /** Прячет осколки и возвращает копию в пул. */
+  public release(): void {
+    for (const shard of this.shards) {
+      shard.deactivate();
+    }
+  }
+
   public dispose(): void {
     for (const shard of this.shards) {
       shard.dispose();

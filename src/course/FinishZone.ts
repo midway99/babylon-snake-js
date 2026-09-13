@@ -44,6 +44,12 @@ export class FinishZone {
     scene.onAfterPhysicsObservable.add(this.notifyIfReached);
   }
 
+  /** Снова ждёт прохождения трассы. */
+  public reset(): void {
+    this.reached = false;
+    this.notified = false;
+  }
+
   public dispose(): void {
     this.plugin.onTriggerCollisionObservable.removeCallback(this.onTrigger);
     this.scene.onAfterPhysicsObservable.removeCallback(this.notifyIfReached);

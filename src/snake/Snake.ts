@@ -1,6 +1,7 @@
 import type { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import type { PhysicsBody } from "@babylonjs/core/Physics/v2/physicsBody";
 import type { PhysicsConstraint } from "@babylonjs/core/Physics/v2/physicsConstraint";
+import type { HavokPlugin } from "@babylonjs/core/Physics/v2/Plugins/havokPlugin";
 import type { Scene } from "@babylonjs/core/scene";
 import type { SnakeConfig } from "../core/GameConfig";
 import { SegmentConnector } from "./SegmentConnector";
@@ -12,9 +13,15 @@ import type { SnakeSegmentMetadata } from "./SnakeSegmentMetadata";
 export class Snake {
   private readonly ownedSegments: SnakeSegment[] = [];
   private readonly constraints: PhysicsConstraint[] = [];
+  /** Стартовая позиция каждого сегмента — для рестарта. */
+  private readonly spawnPositions: Vector3[] = [];
   private readonly materials: SnakeMaterials;
 
-  public constructor(scene: Scene, config: SnakeConfig) {
+  public constructor(
+    scene: Scene,
+    private readonly plugin: HavokPlugin,
+    config: SnakeConfig,
+  ) {
     this.materials = new SnakeMaterials(scene, config);
     this.build(scene, config);
   }
@@ -56,6 +63,17 @@ export class Snake {
     }
   }
 
+  /** Собирает змейку заново на старте: все сегменты целы, неподвижны, соединения восстановлены. */
+  public reset(): void {
+    for (let index = 0; index < this.ownedSegments.length; index++) {
+      this.ownedSegments[index].respawn(this.spawnPositions[index], this.materials.getForSegment(index), this.plugin);
+    }
+    // Соединения включаются после расстановки, чтобы не дёрнуть сегменты к старым позициям соседей.
+    for (const constraint of this.constraints) {
+      constraint.isEnabled = true;
+    }
+  }
+
   /** Скрывает сегмент и разрывает его соединения с соседями; змейка распадается на части. */
   public detachSegment(index: number): void {
     // Соединение с индексом i связывает сегменты i и i + 1.
@@ -87,6 +105,7 @@ export class Snake {
         this.constraints.push(connector.connect(this.ownedSegments[index - 1], segment));
       }
       this.ownedSegments.push(segment);
+      this.spawnPositions.push(position.clone());
       position.x -= step;
     }
   }

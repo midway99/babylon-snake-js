@@ -10,6 +10,7 @@ import { PhysicsBoxEntity } from "../physics/PhysicsBoxEntity";
 export class Shard extends PhysicsBoxEntity {
   // Общие временные векторы: осколки обрабатываются последовательно в одном потоке.
   private static readonly scratchOffset: Vector3 = new Vector3();
+  private static readonly scratchPosition: Vector3 = new Vector3();
 
   public constructor(
     mesh: Mesh,
@@ -25,12 +26,9 @@ export class Shard extends PhysicsBoxEntity {
   public burstFrom(source: PhysicsBoxEntity, plugin: HavokPlugin, config: DestructionConfig): void {
     const offset = Shard.scratchOffset;
     this.localOffset.rotateByQuaternionToRef(source.rotation, offset);
-    this.mesh.position.copyFrom(source.mesh.position).addInPlace(offset);
-    this.rotation.copyFrom(source.rotation);
+    source.mesh.position.addToRef(offset, Shard.scratchPosition);
     this.mesh.material = source.mesh.material;
-
-    this.activate();
-    this.teleportToMesh(plugin);
+    this.placeAt(Shard.scratchPosition, source.rotation, plugin);
 
     // Скорость направлена от центра сегмента; случайный множитель делает разлёт неравномерным.
     offset.normalize().scaleInPlace(config.scatterSpeed * (0.5 + Math.random()));

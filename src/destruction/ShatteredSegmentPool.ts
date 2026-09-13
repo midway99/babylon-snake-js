@@ -33,6 +33,13 @@ export class ShatteredSegmentPool {
     return null;
   }
 
+  /** Прячет все осколки: пул снова полностью свободен. */
+  public releaseAll(): void {
+    for (const item of this.items) {
+      item.release();
+    }
+  }
+
   public dispose(): void {
     for (const item of this.items) {
       item.dispose();

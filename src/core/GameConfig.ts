@@ -144,6 +144,10 @@ export interface UiConfig {
   readonly victoryTitle: string;
   readonly victoryMessage: string;
   readonly victoryCloseText: string;
+  readonly victoryRestartText: string;
+  readonly restartText: string;
+  /** Физический код клавиши рестарта (`KeyboardEvent.code`). */
+  readonly restartKeyCode: string;
 }
 
 export interface GameConfig {
@@ -249,5 +253,8 @@ export const gameConfig: GameConfig = {
     victoryTitle: "Финиш!",
     victoryMessage: "Поздравляем! Змейка добралась до финиша!",
     victoryCloseText: "Закрыть",
+    victoryRestartText: "Начать заново",
+    restartText: "Рестарт (R)",
+    restartKeyCode: "KeyR",
   },
 };
