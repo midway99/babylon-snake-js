@@ -6,6 +6,8 @@ import { LaserCourse } from "../course/LaserCourse";
 import { GroundImpactDetector } from "../destruction/GroundImpactDetector";
 import { SegmentShatterer } from "../destruction/SegmentShatterer";
 import { ShatteredSegmentPool } from "../destruction/ShatteredSegmentPool";
+import { DustParticlePool } from "../effects/DustParticlePool";
+import { GroundDustEmitter } from "../effects/GroundDustEmitter";
 import { SnakeDragController } from "../input/SnakeDragController";
 import { HavokPhysicsLoader } from "../physics/HavokPhysicsLoader";
 import { Arena } from "../scene/Arena";
@@ -18,6 +20,8 @@ export class Game {
   private readonly snake: Snake;
   private readonly dragController: SnakeDragController;
   private readonly shatteredPool: ShatteredSegmentPool;
+  private readonly dustPool: DustParticlePool;
+  private readonly groundDustEmitter: GroundDustEmitter;
   private readonly groundImpactDetector: GroundImpactDetector;
   private readonly laserCourse: LaserCourse;
   private readonly finishZone: FinishZone;
@@ -33,8 +37,18 @@ export class Game {
     this.snake = new Snake(scene, config.snake);
     this.dragController = new SnakeDragController(this.snake);
 
+    this.dustPool = new DustParticlePool(scene, config.dust);
+    this.groundDustEmitter = new GroundDustEmitter(this.snake, this.dustPool, config.dust);
+
     this.shatteredPool = new ShatteredSegmentPool(scene, config.snake, config.destruction);
-    const shatterer = new SegmentShatterer(this.snake, this.shatteredPool, plugin, config.destruction);
+    const shatterer = new SegmentShatterer(
+      this.snake,
+      this.shatteredPool,
+      plugin,
+      config.destruction,
+      this.dustPool,
+      config.dust,
+    );
     this.groundImpactDetector = new GroundImpactDetector(scene, this.snake, shatterer, config.destruction);
 
     this.laserCourse = new LaserCourse(scene, plugin, this.snake, shatterer, config.course);
@@ -60,6 +74,8 @@ export class Game {
     this.laserCourse.dispose();
     this.groundImpactDetector.dispose();
     this.shatteredPool.dispose();
+    this.groundDustEmitter.dispose();
+    this.dustPool.dispose();
     this.dragController.dispose();
     this.snake.dispose();
     this.arena.dispose();

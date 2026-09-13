@@ -1,4 +1,4 @@
-import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 
 export interface SegmentSize {
@@ -95,12 +95,37 @@ export interface CourseConfig {
   readonly victoryMessage: string;
 }
 
+export interface DustBurstConfig {
+  readonly particleCount: number;
+  readonly minSize: number;
+  readonly maxSize: number;
+  readonly minLifeTime: number;
+  readonly maxLifeTime: number;
+  readonly minEmitPower: number;
+  readonly maxEmitPower: number;
+}
+
+export interface DustConfig {
+  /** Сколько систем частиц собрать заранее; если все заняты, новый выброс пропускается. */
+  readonly poolSize: number;
+  readonly color: Color4;
+  /** Цвет в конце жизни частицы: та же пыль, но прозрачная. */
+  readonly fadeColor: Color4;
+  /** Минимальный импульс начала контакта с землёй, чтобы поднять пыль при приземлении. */
+  readonly landingImpulseThreshold: number;
+  /** Сколько метров сегмент должен проползти по земле до следующего облачка пыли. */
+  readonly travelDistancePerPuff: number;
+  readonly contact: DustBurstConfig;
+  readonly destruction: DustBurstConfig;
+}
+
 export interface GameConfig {
   readonly gravity: Vector3;
   readonly arena: ArenaConfig;
   readonly snake: SnakeConfig;
   readonly destruction: DestructionConfig;
   readonly course: CourseConfig;
+  readonly dust: DustConfig;
 }
 
 /** Высота лучей: середина сегмента, лежащего на полу. */
@@ -158,5 +183,30 @@ export const gameConfig: GameConfig = {
       alpha: 0.5,
     },
     victoryMessage: "Поздравляем! Змейка добралась до финиша!",
+  },
+  dust: {
+    poolSize: 32,
+    color: new Color4(0.8, 0.74, 0.64, 0.75),
+    fadeColor: new Color4(0.8, 0.74, 0.64, 0),
+    landingImpulseThreshold: 0.2,
+    travelDistancePerPuff: 1,
+    contact: {
+      particleCount: 16,
+      minSize: 0.4,
+      maxSize: 0.9,
+      minLifeTime: 0.5,
+      maxLifeTime: 1.1,
+      minEmitPower: 0.4,
+      maxEmitPower: 1.1,
+    },
+    destruction: {
+      particleCount: 40,
+      minSize: 0.5,
+      maxSize: 1.2,
+      minLifeTime: 0.8,
+      maxLifeTime: 1.6,
+      minEmitPower: 0.8,
+      maxEmitPower: 2,
+    },
   },
 };

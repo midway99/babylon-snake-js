@@ -30,6 +30,8 @@ export class SnakeSegment extends PhysicsBoxEntity {
     this.metadata = options.metadata;
     this.body.setLinearDamping(config.linearDamping);
     this.body.setAngularDamping(config.angularDamping);
+    // Столкновения сегмента слушают несколько систем (разрушение, пыль), поэтому события включаются здесь один раз.
+    this.body.setCollisionCallbackEnabled(true);
   }
 
   /** Физика начинает каждый шаг вести тело к позиции трансформа меша, который двигает пользователь. */

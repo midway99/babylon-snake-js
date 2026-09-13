@@ -21,7 +21,6 @@ export class GroundImpactDetector {
   ) {
     this.pendingBreaks = new Uint8Array(snake.segments.length);
     for (const segment of snake.segments) {
-      segment.body.setCollisionCallbackEnabled(true);
       segment.body.getCollisionObservable().add(this.onSegmentCollision);
     }
     scene.onAfterPhysicsObservable.add(this.processPendingBreaks);
@@ -31,7 +30,6 @@ export class GroundImpactDetector {
     this.scene.onAfterPhysicsObservable.removeCallback(this.processPendingBreaks);
     for (const segment of this.snake.segments) {
       segment.body.getCollisionObservable().removeCallback(this.onSegmentCollision);
-      segment.body.setCollisionCallbackEnabled(false);
     }
   }
 
