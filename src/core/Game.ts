@@ -15,7 +15,7 @@ export class Game {
   private constructor(
     private readonly engine: Engine,
     private readonly scene: Scene,
-    private readonly config: GameConfig,
+    config: GameConfig,
     canvas: HTMLCanvasElement,
   ) {
     this.arena = new Arena(scene, canvas, config.arena);
@@ -31,9 +31,6 @@ export class Game {
   }
 
   public start(): void {
-    const head = this.snake.head;
-    head.body.applyImpulse(this.config.snake.startImpulse, head.mesh.getAbsolutePosition());
-
     window.addEventListener("resize", this.onResize);
     this.engine.runRenderLoop(this.renderFrame);
   }

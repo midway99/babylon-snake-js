@@ -55,10 +55,9 @@ export class Snake {
   private createSegment(scene: Scene, config: SnakeConfig, index: number, position: Vector3): SnakeSegment {
     return new SnakeSegment(scene, {
       metadata: { id: `snake-segment-${index}`, index },
-      size: config.segmentSize,
       position,
       material: this.materials.getForSegment(index),
-      mass: config.segmentMass,
+      config,
     });
   }
 }

@@ -66,7 +66,7 @@ src/
     Snake.ts                   # сборка змейки из сегментов и соединений
     SnakeSegment.ts            # меш-параллелепипед + PhysicsAggregate (BOX) + metadata
     SnakeSegmentMetadata.ts    # тип объекта в mesh.metadata
-    SegmentConnector.ts        # BallAndSocketConstraint между соседними сегментами
+    SegmentConnector.ts        # Physics6DoFConstraint: только горизонтальный изгиб + выпрямляющий мотор
     SnakeMaterials.ts          # общие StandardMaterial головы и тела
 ```
 
@@ -76,7 +76,9 @@ src/
 
 - Коллизии задаются только через [CollisionFilter.ts](src/physics/CollisionFilter.ts): сегменты змейки сталкиваются с полом, но не друг с другом. Новой сущности нужна своя группа в `CollisionGroup`.
 - Код ввода не трогает физическое тело напрямую, а вызывает методы сущности (`SnakeSegment.beginManualControl` / `endManualControl`).
-- Перетаскиваемое тело на время drag: `disablePreStep = false` и тип движения `ANIMATED` (физика читает позицию из трансформа, гравитация и соединения его не сдвигают). После drag: `disablePreStep = true`, `DYNAMIC`, линейная и угловая скорость обнуляются.
+- Змейка должна двигаться ровно: сегменты остаются горизонтальными, не перекручиваются и не складываются. За это отвечают 6DoF-соединения (сдвиг, крен и тангаж заблокированы, изгиб по вертикальной оси ограничен `maxBendAngle`, мотор выпрямляет), демпфирование скоростей и перетаскивание в горизонтальной плоскости. Не заменять их на `BallAndSocketConstraint`.
+- Сегменты используют pre-step `ACTION`: при `disablePreStep = false` тело остаётся `DYNAMIC` и получает скорость к позиции трансформа, а не телепортируется. На время drag: `disablePreStep = false`; после: `disablePreStep = true`, линейная и угловая скорость обнуляются.
+- Параметры плавности (`linearDamping`, `angularDamping`, `joint.maxBendAngle`, `joint.straighteningForce`) настраиваются только в конфиге.
 
 ## Производительность: без аллокаций в горячем пути
 
