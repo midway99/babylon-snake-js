@@ -35,16 +35,24 @@ export class SnakeSegment extends PhysicsBoxEntity {
   /** Физика начинает каждый шаг вести тело к позиции трансформа меша, который двигает пользователь. */
   public beginManualControl(): void {
     if (this.isActive) {
-      // В Babylon 9 `disablePreStep = false` включает pre-step в режиме TELEPORT. Режим ACTION вместо
-      // телепорта задаёт телу скорость к позиции трансформа: соединения плавно тянут соседей,
-      // а сам сегмент разворачивается по ходу движения.
+      // В Babylon 9 `disablePreStep = false` включает pre-step в режиме TELEPORT.
       this.body.disablePreStep = false;
+    }
+  }
+
+  /**
+   * Сегмент следует за соседями без инерции: pre-step в режиме ACTION каждый шаг задаёт телу скорость
+   * к его же текущему трансформу, гася накопленную скорость и гравитацию. Двигают его только соединения,
+   * поэтому тело ползёт по следу ведущего сегмента, как змея.
+   */
+  public followWithoutInertia(): void {
+    if (this.isActive) {
       this.body.setPrestepType(PhysicsPrestepType.ACTION);
     }
   }
 
-  /** Возвращает сегмент под управление физики, не оставляя скорости от перетаскивания. */
-  public endManualControl(): void {
+  /** Возвращает сегмент под обычное управление физики, не оставляя скорости от перетаскивания. */
+  public releaseToPhysics(): void {
     if (this.isActive) {
       this.body.disablePreStep = true;
       this.resetVelocity();

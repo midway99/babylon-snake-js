@@ -5,7 +5,12 @@ import type { SnakeSegment } from "../snake/SnakeSegment";
 
 type DragOptions = PointerDragBehavior["options"];
 
-/** Позволяет перетаскивать сегмент мышью; на время перетаскивания физика ведёт тело за трансформом меша. */
+export interface SegmentDragListener {
+  onSegmentDragStart(segment: SnakeSegment): void;
+  onSegmentDragEnd(segment: SnakeSegment): void;
+}
+
+/** Позволяет перетаскивать сегмент мышью и сообщает слушателю о начале и конце перетаскивания. */
 export class SegmentDragHandler {
   /** Змейка ползёт по полу: перетаскивание в горизонтальной плоскости на высоте сегмента. */
   private static readonly moveOptions: DragOptions = { dragPlaneNormal: Vector3.Up() };
@@ -14,7 +19,10 @@ export class SegmentDragHandler {
 
   private readonly behavior: PointerDragBehavior = new PointerDragBehavior(SegmentDragHandler.moveOptions);
 
-  public constructor(private readonly segment: SnakeSegment) {
+  public constructor(
+    private readonly segment: SnakeSegment,
+    private readonly listener: SegmentDragListener,
+  ) {
     this.behavior.useObjectOrientationForDragging = false;
     this.behavior.onDragStartObservable.add(this.onDragStart);
     this.behavior.onDragEndObservable.add(this.onDragEnd);
@@ -32,10 +40,10 @@ export class SegmentDragHandler {
   }
 
   private readonly onDragStart = (): void => {
-    this.segment.beginManualControl();
+    this.listener.onSegmentDragStart(this.segment);
   };
 
   private readonly onDragEnd = (): void => {
-    this.segment.endManualControl();
+    this.listener.onSegmentDragEnd(this.segment);
   };
 }

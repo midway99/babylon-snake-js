@@ -25,6 +25,29 @@ export class Snake {
     return this.ownedSegments;
   }
 
+  /**
+   * Задаёт поведение всех сегментов, кроме ведущего: `true` — ползут следом без инерции,
+   * `false` — подчиняются обычной физике (гравитация, провисание, падение).
+   */
+  public setFollowersCrawling(leader: SnakeSegment, crawling: boolean): void {
+    for (const segment of this.ownedSegments) {
+      if (segment === leader) {
+        continue;
+      }
+      if (crawling) {
+        segment.followWithoutInertia();
+      } else {
+        segment.releaseToPhysics();
+      }
+    }
+  }
+
+  public releaseToPhysics(): void {
+    for (const segment of this.ownedSegments) {
+      segment.releaseToPhysics();
+    }
+  }
+
   /** Скрывает сегмент и разрывает его соединения с соседями; змейка распадается на части. */
   public detachSegment(index: number): void {
     // Соединение с индексом i связывает сегменты i и i + 1.
