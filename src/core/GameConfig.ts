@@ -226,8 +226,8 @@ export const gameConfig: GameConfig = {
   },
   ui: {
     colorOptions: [
+      { label: "Красный", color: new Color3(0.9, 0.2, 0.2) },
       { label: "Синий", color: new Color3(0.2, 0.45, 0.95) },
-      { label: "Жёлтый", color: new Color3(0.95, 0.8, 0.15) },
     ],
     selectionLabel: "Выбранный меш",
     noSelectionText: "кликните по сегменту",
