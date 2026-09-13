@@ -8,6 +8,7 @@ import { PhysicsShapeType } from "@babylonjs/core/Physics/v2/IPhysicsEnginePlugi
 import { PhysicsAggregate } from "@babylonjs/core/Physics/v2/physicsAggregate";
 import type { Scene } from "@babylonjs/core/scene";
 import type { ArenaConfig } from "../core/GameConfig";
+import { CollisionFilter } from "../physics/CollisionFilter";
 
 /** Окружение сцены: камера, свет и статичный пол с физическим телом. */
 export class Arena {
@@ -29,6 +30,7 @@ export class Arena {
     this.ground = CreateGround("ground", { width: config.groundSize, height: config.groundSize }, scene);
     this.ground.material = this.groundMaterial;
     this.groundAggregate = new PhysicsAggregate(this.ground, PhysicsShapeType.BOX, { mass: 0 }, scene);
+    CollisionFilter.Ground.applyTo(this.groundAggregate.shape);
   }
 
   public dispose(): void {

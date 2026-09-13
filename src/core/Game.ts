@@ -1,5 +1,6 @@
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
+import { SnakeDragController } from "../input/SnakeDragController";
 import { HavokPhysicsLoader } from "../physics/HavokPhysicsLoader";
 import { Arena } from "../scene/Arena";
 import { Snake } from "../snake/Snake";
@@ -9,6 +10,7 @@ import type { GameConfig } from "./GameConfig";
 export class Game {
   private readonly arena: Arena;
   private readonly snake: Snake;
+  private readonly dragController: SnakeDragController;
 
   private constructor(
     private readonly engine: Engine,
@@ -18,6 +20,7 @@ export class Game {
   ) {
     this.arena = new Arena(scene, canvas, config.arena);
     this.snake = new Snake(scene, config.snake);
+    this.dragController = new SnakeDragController(this.snake);
   }
 
   public static async create(canvas: HTMLCanvasElement, config: GameConfig): Promise<Game> {
@@ -38,6 +41,7 @@ export class Game {
   public dispose(): void {
     window.removeEventListener("resize", this.onResize);
     this.engine.stopRenderLoop(this.renderFrame);
+    this.dragController.dispose();
     this.snake.dispose();
     this.arena.dispose();
     this.scene.dispose();

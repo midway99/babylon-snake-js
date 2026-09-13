@@ -8,7 +8,7 @@ import { SnakeSegment } from "./SnakeSegment";
 
 /** Змейка из последовательно соединённых физических сегментов. */
 export class Snake {
-  private readonly segments: SnakeSegment[] = [];
+  private readonly ownedSegments: SnakeSegment[] = [];
   private readonly constraints: PhysicsConstraint[] = [];
   private readonly materials: SnakeMaterials;
 
@@ -18,22 +18,22 @@ export class Snake {
   }
 
   public get head(): SnakeSegment {
-    return this.segments[0];
+    return this.ownedSegments[0];
   }
 
-  public get length(): number {
-    return this.segments.length;
+  public get segments(): ReadonlyArray<SnakeSegment> {
+    return this.ownedSegments;
   }
 
   public dispose(): void {
     for (const constraint of this.constraints) {
       constraint.dispose();
     }
-    for (const segment of this.segments) {
+    for (const segment of this.ownedSegments) {
       segment.dispose();
     }
     this.constraints.length = 0;
-    this.segments.length = 0;
+    this.ownedSegments.length = 0;
     this.materials.dispose();
   }
 
@@ -45,9 +45,9 @@ export class Snake {
     for (let index = 0; index < config.segmentCount; index++) {
       const segment = this.createSegment(scene, config, index, position);
       if (index > 0) {
-        this.constraints.push(connector.connect(this.segments[index - 1], segment));
+        this.constraints.push(connector.connect(this.ownedSegments[index - 1], segment));
       }
-      this.segments.push(segment);
+      this.ownedSegments.push(segment);
       position.x -= step;
     }
   }

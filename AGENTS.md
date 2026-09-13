@@ -54,8 +54,12 @@ src/
   core/
     Game.ts                    # движок, сцена, рендер-цикл, владение сущностями
     GameConfig.ts              # типизированный конфиг и его значения
+  input/
+    SnakeDragController.ts     # вешает перетаскивание на каждый сегмент
+    SegmentDragHandler.ts      # PointerDragBehavior + onDragStart/onDragEnd
   physics/
     HavokPhysicsLoader.ts      # загрузка Havok WASM и scene.enablePhysics
+    CollisionFilter.ts         # группы и маски коллизий (filterMembershipMask / filterCollideMask)
   scene/
     Arena.ts                   # камера, свет, пол со статичным телом
   snake/
@@ -66,7 +70,13 @@ src/
     SnakeMaterials.ts          # общие StandardMaterial головы и тела
 ```
 
-Будущие модули (управление, еда, UI, пулы объектов) кладутся в отдельные папки: `input/`, `food/`, `ui/`, `utils/`.
+Будущие модули (еда, UI, пулы объектов) кладутся в отдельные папки: `food/`, `ui/`, `utils/`.
+
+### Физика и ввод
+
+- Коллизии задаются только через [CollisionFilter.ts](src/physics/CollisionFilter.ts): сегменты змейки сталкиваются с полом, но не друг с другом. Новой сущности нужна своя группа в `CollisionGroup`.
+- Код ввода не трогает физическое тело напрямую, а вызывает методы сущности (`SnakeSegment.beginManualControl` / `endManualControl`).
+- Перетаскиваемое тело на время drag: `disablePreStep = false` и тип движения `ANIMATED` (физика читает позицию из трансформа, гравитация и соединения его не сдвигают). После drag: `disablePreStep = true`, `DYNAMIC`, линейная и угловая скорость обнуляются.
 
 ## Производительность: без аллокаций в горячем пути
 
